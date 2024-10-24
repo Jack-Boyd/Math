@@ -8,14 +8,40 @@ typedef struct {
     int cols;
 } Matrix;
 
+// Allocating memory
+// Step 1: Allocate memory for struct
+//    If malloc fails, print error message and exit
+// Step 2: Go into struct and allocate memory for any properties as deep as needed
+//    If malloc fails, free any already allocated memory, print error message and exit
+// Step 3: When finished, free the deepest level of memory, and work way out
+// Step 4: Make pointer to struct = NULL
+
 Matrix* createMatrix(int rows, int cols) {
     Matrix* matrix = (Matrix*)malloc(sizeof(Matrix));
+    if (matrix == NULL) {
+        fprintf(stderr, "Error allocating memory for matrix\n");
+        exit(EXIT_FAILURE);
+    }
     matrix->rows = rows;
     matrix->cols = cols;
 
     matrix->values = (int**)malloc(rows * sizeof(int*));
+    if (matrix->values == NULL) {
+        fprintf(stderr, "Error allocating memory for matrix values\n");
+        free(matrix);
+        exit(EXIT_FAILURE);
+    }
     for (int i = 0; i < rows; i++) {
         matrix->values[i] = (int*)malloc(cols * sizeof(int));
+        if (matrix->values[i] == NULL) {
+            fprintf(stderr, "Error allocating memory for matrix values\n");
+            for (int j = 0; j < i; j++) {
+                free(matrix->values[j]);
+            }
+            free(matrix->values);
+            free(matrix);
+            exit(EXIT_FAILURE);
+        }
     }
 
     return matrix;
@@ -35,17 +61,23 @@ void printMatrix(Matrix* matrix) {
         printf("\n");
     }
 }
-void freeMatrix(Matrix* matrix) {
-    for (int i = 0; i < matrix->rows; i++) {
-        free(matrix->values[i]);
+void freeMatrix(Matrix** matrix) {
+    //Use double pointer to make original pointer = NULL
+    if (*matrix == NULL) {
+        return;
     }
-    free(matrix->values);
-    matrix->values = NULL;
+    for (int i = 0; i < (*matrix)->rows; i++) {
+        free((*matrix)->values[i]);
+    }
+    free((*matrix)->values);
+    free((*matrix));
+    *matrix = NULL;
 }
 
 Matrix* addMatrices(Matrix* m, Matrix* n) {
-    if (m->rows != n->rows && m->cols != n->cols) {
+    if (m->rows != n->rows || m->cols != n->cols) {
         printf("Matrices incompatible with adding\n");
+        return NULL;
     }
 
     Matrix* res = createMatrix(m->rows, m->cols);
@@ -58,8 +90,9 @@ Matrix* addMatrices(Matrix* m, Matrix* n) {
     return res;
 }
 Matrix* subtractMatrices(Matrix* m, Matrix* n) {
-    if (m->rows != n->rows && m->cols != n->cols) {
+    if (m->rows != n->rows || m->cols != n->cols) {
         printf("Matrices incompatible with subtracting\n");
+        return NULL;
     }
     
     Matrix* res = createMatrix(m->rows, m->cols);
@@ -125,12 +158,12 @@ int main() {
     printf("-----\n");
     printMatrix(i);
 
-    freeMatrix(m);
-    freeMatrix(n);
-    freeMatrix(a);
-    freeMatrix(s);
-    freeMatrix(r);
-    freeMatrix(i);
+    freeMatrix(&m);
+    freeMatrix(&n);
+    freeMatrix(&a);
+    freeMatrix(&s);
+    freeMatrix(&r);
+    freeMatrix(&i);
 
     return 0;
 }
