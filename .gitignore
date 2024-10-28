@@ -1,0 +1,47 @@
+# Compiled object files
+*.o
+
+# Compiled executables
+*.exe
+*.out
+
+# Build directory
+/build/
+
+# CMake files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# IDE-specific files
+.idea/
+.vscode/
+*.code-workspace
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Backup and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.orig
+
+# Test binaries and output files
+/tests/*.o
+/tests/*.exe
+/tests/*.out
+
+# Auto-generated project files
+*.cbp            # Code::Blocks project files
+*.layout         # Code::Blocks layout files
+*.vcxproj*       # Visual Studio project files
+*.sln            # Visual Studio solution files
+
+# CLion project files
+.cmake/
+cmake-build-debug/
