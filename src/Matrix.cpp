@@ -6,9 +6,7 @@ Matrix::Matrix(size_t rows, size_t cols) : rows(rows), cols(cols), values(rows, 
 Matrix::Matrix(const std::vector<std::vector<double>>& values) : values(values), rows(values.size()), cols(values[0].size()) {}
 
 Matrix Matrix::operator+(const Matrix& other) const {
-    if (rows != other.rows || cols != other.cols) {
-        throw std::invalid_argument("Matrix dimensions must agree for addition.");
-    }
+    if (rows != other.rows || cols != other.cols) throw std::invalid_argument("Matrix dimensions must agree for addition.");
 
     Matrix result(rows, cols);
     for (size_t i = 0; i < rows; ++i) {
@@ -19,9 +17,7 @@ Matrix Matrix::operator+(const Matrix& other) const {
     return result;
 }
 Matrix Matrix::operator-(const Matrix& other) const {
-    if (rows != other.rows || cols != other.cols) {
-        throw std::invalid_argument("Matrix dimensions must agree for addition.");
-    }
+    if (rows != other.rows || cols != other.cols) throw std::invalid_argument("Matrix dimensions must agree for addition.");
 
     Matrix result(rows, cols);
     for (size_t i = 0; i < rows; ++i) {
@@ -32,9 +28,7 @@ Matrix Matrix::operator-(const Matrix& other) const {
     return result;
 }
 Matrix Matrix::operator*(const Matrix& other) const {
-    if (cols != other.rows) {
-        throw std::invalid_argument("Matrix dimensions must agree for multiplication.");
-    }
+    if (cols != other.rows) throw std::invalid_argument("Matrix dimensions must agree for multiplication.");
 
     Matrix result(rows, other.cols);
     for (size_t i = 0; i < rows; ++i) {
@@ -119,15 +113,10 @@ Matrix Matrix::adjoint() const {
     return adj;
 }
 Matrix Matrix::inverse() const {
-    if (!isSquare()) {
-        throw std::invalid_argument("Matrix must be square to find its inverse.");
-    }
+    if (!isSquare()) throw std::invalid_argument("Matrix must be square to find its inverse.");
 
     double det = determinant(*this, rows);
-    if (det == 0) {
-        throw std::runtime_error("Singular matrix, can't find its inverse.");
-    }
-
+    if (det == 0) throw std::runtime_error("Singular matrix, can't find its inverse.");
     Matrix adj = adjoint();
     Matrix inv(rows, cols);
 
@@ -137,4 +126,30 @@ Matrix Matrix::inverse() const {
         }
     }
     return inv;
+}
+
+std::vector<double> Matrix::solveGaussianElimination(const std::vector<double>& mat) const {
+    if (!isSquare() && mat.size() != rows) throw std::invalid_argument("Matrix must be square and match the size of the vector.");
+    
+    Matrix augmented(*this);
+    std::vector<double> result(mat);
+    for (size_t i = 0; i < rows; ++i) {
+        if (augmented.values[i][i] == 0) throw std::runtime_error("Singular matrix, cannot solve.");
+        for (size_t j = i + 1; j < rows; ++j) {
+            double ratio = augmented.values[j][i] / augmented.values[i][i];
+            for (size_t k = i; k < cols; ++k) {
+                augmented.values[j][k] -= augmented.values[i][k] * ratio;
+            }
+            result[j] -= result[i] * ratio;
+        }
+    }
+    
+    for (int i = rows - 1; i >= 0; --i) {
+        for (int j = i + 1; j < rows; ++j) {
+            result[i] -= augmented.values[i][j] * result[j];
+        }
+        result[i] /= augmented.values[i][i];
+    }
+
+    return result;
 }

@@ -26,6 +26,8 @@ public:
     
     bool isSquare() const;
     Matrix inverse() const;
+
+    std::vector<double> solveGaussianElimination(const std::vector<double>& mat) const;
 };
 
 #endif // MATRIX_HPP
