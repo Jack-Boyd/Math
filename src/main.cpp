@@ -1,4 +1,4 @@
-#include "Matrix.hpp"
+#include "Matrix.h"
 
 int main() {
   Matrix m({{9, 3, 4}, {4, 3, 4}, {1, 1, 1}});
