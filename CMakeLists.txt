@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
-project(MatrixOperations)
+project(Math)
 
 set(CMAKE_CXX_STANDARD 20)
 
 include_directories(include)
 
-add_library(MatrixOperations src/Matrix.cpp)
+add_library(Math src/Matrix.cpp)
 
-add_executable(MatrixApp src/main.cpp)
-target_link_libraries(MatrixApp MatrixOperations)
+add_executable(MathLibrary src/main.cpp)
+target_link_libraries(MathLibrary Math)

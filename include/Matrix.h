@@ -1,5 +1,4 @@
-#ifndef MATRIX_HPP
-#define MATRIX_HPP
+#pragma once
 
 #include <vector>
 #include <iostream>
@@ -29,5 +28,3 @@ public:
 
     std::vector<double> solveGaussianElimination(const std::vector<double>& mat) const;
 };
-
-#endif // MATRIX_HPP
