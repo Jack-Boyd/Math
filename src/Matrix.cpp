@@ -65,7 +65,7 @@ Matrix operator*(double scalar, const Matrix& mat) {
 }
 
 bool Matrix::operator==(const Matrix& other) const {
-    return rows == other.rows && cols == other.cols && values == other.values;
+  return rows == other.rows && cols == other.cols && values == other.values;
 }
 
 bool Matrix::operator!=(const Matrix& other) const { return !(*this == other); }
@@ -79,67 +79,113 @@ Matrix Matrix::identity(size_t size) {
 
 bool Matrix::isSquare() const { return rows == cols; }
 
-Matrix Matrix::getMinor(const Matrix& mat, size_t row, size_t col, size_t size) {
+Matrix Matrix::getMinor(const Matrix& matrix, size_t row, size_t col) {
+  if (!matrix.isSquare()) 
+    throw std::invalid_argument("Minor requires a square matrix.");
+
+  size_t size = matrix.numRows();
   Matrix temp(size - 1, size - 1);
-  size_t i = 0, j = 0;
-  for (size_t r = 0; r < size; ++r) {
-    for (size_t c = 0; c < size; ++c) {
-      if (r != row && c != col) {
-        temp.values[i][j++] = mat.values[r][c];
-        if (j == size - 1) {
-          j = 0;
-          ++i;
-        }
+
+  for (size_t r = 0, i = 0; r < size; ++r) {
+    if (r == row) continue;
+    for (size_t c = 0, j = 0; c < size; ++c) {
+      if (c == col) continue;
+      temp.values[i][j++] = matrix.values[r][c];
     }
-    }
+    ++i;
   }
   return temp;
 }
 
-double Matrix::determinant(const Matrix& matrix, size_t size) {
-  if (size == 1)
-    return matrix.values[0][0];
+double Matrix::determinantRecursive() const {
+  if (!isSquare())
+    throw std::invalid_argument("Determinant requires square matrix");
+  
+  size_t n = rows;
+  if (n == 1) return values[0][0];
+  if (n == 2)
+    return values[0][0] * values[1][1] -
+           values[0][1] * values[1][0];
 
-  double det = 0;
+  double det = 0.0;
   int sign = 1;
-
-  for (size_t i = 0; i < size; ++i) {
-    Matrix cf = getMinor(matrix, 0, i, size);
-    det += sign * matrix.values[0][i] * determinant(cf, size - 1);
+  for (size_t j = 0; j < n; ++j) {
+    Matrix minor = getMinor(*this, 0, j);
+    det += sign * values[0][j] * minor.determinantRecursive();
     sign = -sign;
   }
+  return det;
+}
+
+double Matrix::determinantFast() const {
+  if (!isSquare())
+    throw std::invalid_argument("Determinant requires square matrix");
+  
+  size_t n = rows;
+  Matrix temp = *this;
+  double det = 1.0;
+
+  for (size_t i = 0; i < n; ++i) {
+    size_t pivot = i;
+    for (size_t r = i + 1; r < n; ++r) {
+      if (std::fabs(temp.values[r][i]) > std::fabs(temp.values[pivot][i]))
+        pivot = r;
+    }
+
+    if (std::fabs(temp.values[pivot][i]) < 1e-12)
+      return 0.0;
+
+    if (pivot != i) {
+      std::swap(temp.values[i], temp.values[pivot]);
+      det = -det;
+    }
+
+    det *= temp.values[i][i];
+
+    for (size_t r = i + 1; r < n; ++r) {
+      double factor = temp.values[r][i] / temp.values[i][i];
+      for (size_t c = i; c < n; ++c) {
+        temp.values[r][c] -= factor * temp.values[i][c];
+      }
+    }
+  }
+
   return det;
 }
 
 Matrix Matrix::adjoint() const {
   if (!isSquare())
     throw std::invalid_argument("Adjoint requires a square matrix.");
+  
+  size_t n = rows;
+  Matrix adj(n, n);
 
-  Matrix adj(rows, cols);
-  if (rows == 1) {
+  if (n == 1) {
     adj.values[0][0] = 1;
     return adj;
   }
 
-  for (size_t i = 0; i < rows; ++i) {
-    for (size_t j = 0; j < cols; ++j) {
-      Matrix cf = getMinor(*this, i, j, rows);
+  for (size_t i = 0; i < n; ++i) {
+    for (size_t j = 0; j < n; ++j) {
+      Matrix cf = getMinor(*this, i, j);
       int sign = ((i + j) % 2 == 0) ? 1 : -1;
-      adj.values[j][i] = sign * determinant(cf, rows - 1);
+      adj.values[j][i] = sign * cf.determinantRecursive();
     }
   }
+
   return adj;
 }
 
 Matrix Matrix::inverse() const {
   if (!isSquare())
     throw std::invalid_argument("Inverse requires a square matrix.");
-
-  double det = determinant(*this, rows);
-  if (det == 0)
-    throw std::runtime_error("Singular matrix, cannot be inverted.");
-
-  return adjoint() * (1.0 / det);
+  
+  double det = determinantFast();
+  if (std::fabs(det) < 1e-12) 
+    throw std::runtime_error("Matrix is singular");
+  
+  Matrix adj = adjoint();
+  return adj * (1.0 / det);
 }
 
 std::vector<double> Matrix::solveGaussianElimination(const std::vector<double>& rhs) const {
@@ -174,7 +220,7 @@ std::vector<double> Matrix::solveGaussianElimination(const std::vector<double>& 
 std::ostream& operator<<(std::ostream& os, const Matrix& m) {
   for (const auto& row : m.values) {
     for (double val : row)
-      os << std::setw(10) << val << " ";
+      os << std::setw(5) << val << " ";
     os << '\n';
   }
   return os;

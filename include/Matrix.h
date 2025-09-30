@@ -10,9 +10,7 @@ private:
   std::vector<std::vector<double>> values;
   size_t rows, cols;
 
-  static Matrix getMinor(const Matrix &mat, size_t row, size_t col, size_t size);
-  static double determinant(const Matrix &mat, size_t size);
-  Matrix adjoint() const;
+  static Matrix getMinor(const Matrix &matrix, size_t row, size_t col);
 
 public:
   Matrix(size_t rows, size_t cols);
@@ -29,19 +27,23 @@ public:
   Matrix operator*(const Matrix &other) const;
 
   Matrix operator*(double scalar) const;
-  friend Matrix operator*(double scalar, const Matrix &mat);
+  friend Matrix operator*(double scalar, const Matrix &matrix);
 
   bool operator==(const Matrix& other) const;
   bool operator!=(const Matrix& other) const;
 
-  static Matrix identity(size_t size);
+  friend std::ostream& operator<<(std::ostream& os, const Matrix& m);
 
+  static Matrix identity(size_t size);
   bool isSquare() const;
   size_t numRows() const { return rows; }
   size_t numCols() const { return cols; }
   
-  Matrix inverse() const;
-  std::vector<double> solveGaussianElimination(const std::vector<double> &mat) const;
+  double determinantRecursive() const;
+  double determinantFast() const;
 
-  friend std::ostream& operator<<(std::ostream& os, const Matrix& m);
+  Matrix adjoint() const;
+  Matrix inverse() const;
+  
+  std::vector<double> solveGaussianElimination(const std::vector<double> &rhs) const;
 };
