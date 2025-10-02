@@ -1,14 +1,13 @@
 #pragma once
 
-#include <iomanip>
+#include <cstddef>
 #include <iostream>
-#include <stdexcept>
 #include <vector>
 
 class Matrix {
 private:
-  std::vector<std::vector<double>> values;
-  size_t rows, cols;
+  std::vector<std::vector<double>> m_values;
+  size_t m_rows, m_cols;
 
   static Matrix getMinor(const Matrix &matrix, size_t row, size_t col);
 
@@ -36,8 +35,8 @@ public:
 
   static Matrix identity(size_t size);
   bool isSquare() const;
-  size_t numRows() const { return rows; }
-  size_t numCols() const { return cols; }
+  size_t numRows() const { return m_rows; }
+  size_t numCols() const { return m_cols; }
   
   double determinantRecursive() const;
   double determinantFast() const;
